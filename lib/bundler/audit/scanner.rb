@@ -28,6 +28,7 @@ require 'resolv'
 require 'set'
 require 'uri'
 require 'yaml'
+require 'pry'
 
 module Bundler
   module Audit
@@ -55,6 +56,8 @@ module Bundler
       # @return [Hash]
       attr_reader :config
 
+      attr_reader :skip_insecure_sources
+
       #
       # Initializes a scanner.
       #
@@ -74,9 +77,10 @@ module Bundler
       #   The `gemfile_lock` file could not be found within the `root`
       #   directory.
       #
-      def initialize(root=Dir.pwd,gemfile_lock='Gemfile.lock',database=Database.new,config_dot_file='.bundler-audit.yml')
+      def initialize(root=Dir.pwd,gemfile_lock='Gemfile.lock',database=Database.new,config_dot_file='.bundler-audit.yml',skip_insecure_sources=false)
         @root     = File.expand_path(root)
         @database = database
+        @skip_insecure_sources = skip_insecure_sources
 
         gemfile_lock_path = File.join(@root,gemfile_lock)
 
@@ -179,13 +183,13 @@ module Bundler
           when Source::Git
             case source.uri
             when /^git:/, /^http:/
-              unless internal_source?(source.uri)
+              unless internal_source?(source.uri) || !skip_insecure_sources
                 yield Results::InsecureSource.new(source.uri)
               end
             end
           when Source::Rubygems
             source.remotes.each do |uri|
-              if (uri.scheme == 'http' && !internal_source?(uri))
+              if !skip_insecure_sources && (uri.scheme == 'http' && !internal_source?(uri))
                 yield Results::InsecureSource.new(uri.to_s)
               end
             end

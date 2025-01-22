@@ -9,3 +9,5 @@ spec/bundle/*/.bundle/
 spec/fixtures/database
 vendor/bundle/
 tmp/
+stubs
+.bundle

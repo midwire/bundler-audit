@@ -36,6 +36,7 @@ module Bundler
       desc 'check [DIR]', 'Checks the Gemfile.lock for insecure dependencies'
       method_option :quiet, type: :boolean, aliases: '-q'
       method_option :verbose, type: :boolean, aliases: '-v'
+      method_option :skip_insecure_sources, type: :boolean, aliases: '-s'
       method_option :ignore, type: :array, aliases: '-i'
       method_option :update, type: :boolean, aliases: '-u'
       method_option :database, type: :string, aliases: '-D',
@@ -67,7 +68,7 @@ module Bundler
 
         database = Database.new(options[:database])
         scanner  = begin
-                     Scanner.new(dir,options[:gemfile_lock],database,options[:config])
+                     Scanner.new(dir,options[:gemfile_lock],database,options[:config], options[:skip_insecure_sources])
                    rescue Bundler::GemfileLockNotFound => exception
                      say exception.message, :red
                      exit 1
